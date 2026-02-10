@@ -1,14 +1,36 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { PatientProvider, usePatient } from '@/contexts/PatientContext';
+import Sidebar from '@/components/emr/Sidebar';
+import Dashboard from '@/components/emr/Dashboard';
+import ModuleView from '@/components/emr/ModuleView';
+import { MODULES } from '@/lib/modules';
 
-const Index = () => {
+function AppContent() {
+  const [activeModule, setActiveModule] = useState('dashboard');
+  const { currentPatient } = usePatient();
+
+  const currentModuleDef = MODULES.find(m => m.key === activeModule);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar activeModule={activeModule} onSelectModule={setActiveModule} />
+      <main className="flex-1 overflow-auto">
+        {activeModule === 'dashboard' || !currentModuleDef ? (
+          <Dashboard onNavigate={setActiveModule} />
+        ) : currentPatient && currentModuleDef ? (
+          <ModuleView module={currentModuleDef} patientId={currentPatient.id} />
+        ) : (
+          <Dashboard onNavigate={setActiveModule} />
+        )}
+      </main>
     </div>
   );
-};
+}
 
-export default Index;
+export default function Index() {
+  return (
+    <PatientProvider>
+      <AppContent />
+    </PatientProvider>
+  );
+}
